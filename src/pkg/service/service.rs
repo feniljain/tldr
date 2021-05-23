@@ -1,29 +1,42 @@
-use anyhow::Result;
-use crate::pkg::repository::repository::{IURLRepository, URLRepository};
+use anyhow::{ Result, anyhow };
 
-pub trait IURLService {
-     fn add() -> Result<String>;
-     fn remove() -> Result<()>;
+use crate::pkg::repository::IURLRepository;
+use crate::pkg::db::json::DBJson;
+use crate::core::{ Config, AddURLReq, RemoveURLReq };
+
+pub type TURLService = Box<dyn IURLService + 'static + Send + Sync>;
+
+pub trait IURLService: Send + Sync {
+    fn add(&self, req: AddURLReq) -> Result<String>;
+    fn remove(&self, req: RemoveURLReq) -> Result<()>;
+    fn get_redirection_url(&self, key: String) -> Result<String>;
 }
 
-pub struct URLService<T: IURLRepository> {
-    pub repo: T,
+pub struct URLService {
+    pub repo: Box<dyn IURLRepository>,
 }
 
-impl URLService<URLRepository> {
-    pub fn new() -> Self {
-        URLService {
-            repo: URLRepository::new(),
+impl URLService {
+    pub fn new(config: Config) -> Result<TURLService> {
+        match config.db_type.as_str() {
+            "json" => Ok(Box::new(URLService {
+                repo: DBJson::new(config),
+            })),
+            _ => Err(anyhow!("invalid db type")),
         }
     }
 }
 
-impl IURLService for URLService<URLRepository> {
-    fn add() -> Result<String> {
-        return Ok(String::new());
+impl IURLService for URLService {
+    fn add(&self, req: AddURLReq) -> Result<String> {
+        self.repo.add(req)
     }
 
-    fn remove() -> Result<()> {
-        return Ok(());
+    fn remove(&self, req: RemoveURLReq) -> Result<()> {
+        self.repo.remove(req)
+    }
+
+    fn get_redirection_url(&self, key: String) -> Result<String> {
+        self.repo.get_redirection_url(key)
     }
 }

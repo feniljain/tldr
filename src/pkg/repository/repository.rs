@@ -1,28 +1,11 @@
 use anyhow::Result;
 
-pub trait IURLRepository {
-    fn add() -> Result<String>;
-    fn remove() -> Result<()>;
-}
+use crate::core::{ AddURLReq, RemoveURLReq };
 
-pub struct URLRepository {
-    pub db: String
-}
+pub type TURLRepository = Box<dyn IURLRepository + 'static + Send + Sync>;
 
-impl URLRepository {
-    pub fn new() -> Self {
-        URLRepository {
-            db: "".to_string(),
-        }
-    }
-}
-
-impl IURLRepository for URLRepository {
-    fn add() -> Result<String> {
-        return Ok(String::new());
-    }
-
-    fn remove() -> Result<()> {
-        return Ok(());
-    }
+pub trait IURLRepository: Send + Sync {
+    fn add(&self, req: AddURLReq) -> Result<String>;
+    fn remove(&self, req: RemoveURLReq) -> Result<()>;
+    fn get_redirection_url(&self, key: String) -> Result<String>;
 }
