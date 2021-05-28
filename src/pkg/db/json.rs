@@ -1,5 +1,4 @@
-use anyhow::{anyhow, Result};
-use regex::RegexBuilder;
+use anyhow::{anyhow, Result}; use regex::RegexBuilder;
 use serde_json::{Map, Value};
 use std::fs;
 
